@@ -291,11 +291,17 @@
         const history = this.priceHistory[symbol];
         if (history.length < this.patternLength) return null;
         const recentPrices = history.slice(-this.patternLength);
-        const avgPrice = recentPrices.reduce((sum, p) => sum + p, 0) / recentPrices.length;
-        const lastPrice = recentPrices[recentPrices.length - 1];
-        if (lastPrice > avgPrice * 1.01) {
+        // Calculate moving averages
+        const shortMA = recentPrices.slice(-5).reduce((sum, p) => sum + p, 0) / 5;
+        const longMA = recentPrices.reduce((sum, p) => sum + p, 0) / recentPrices.length;
+        // Momentum indicator
+        const momentum = recentPrices[recentPrices.length - 1] - recentPrices[0];
+        // Volatility
+        const volatility = Math.max(...recentPrices) - Math.min(...recentPrices);
+        // Prediction logic
+        if (shortMA > longMA && momentum > 0 && volatility > 0.01) {
           return 'MULTUP'; // Predict upward movement
-        } else if (lastPrice < avgPrice * 0.99) {
+        } else if (shortMA < longMA && momentum < 0 && volatility > 0.01) {
           return 'MULTDOWN'; // Predict downward movement
         }
         return null;
